@@ -65,24 +65,30 @@ def main():
     ]
 
     # Соединение данных многие-ко-многим через класс DataRowTable.
-    many_to_many = []
-    for link in data_row_tables:
-        for row in data_rows:
-            if row.id == link.row_id:
-                for table in tables:
-                    if table.id == link.table_id:
-                        many_to_many.append((row.name, table.name))
+    many_to_many_temp = [
+        (table.name, table.id, link.row_id)
+        for table in tables
+        for link in data_row_tables
+        if table.id == link.table_id
+    ]
+    many_to_many = [
+        (row.name, table_name)
+        for table_name, table_id, row_id in many_to_many_temp
+        for row in data_rows
+        if row.id == row_id
+    ]
 
     print("Задание В1")
-    res_11 = [row for row in one_to_many if row[0].startswith("А")]
+    rows_starting_with_a = list(filter(lambda row: row[0].startswith("А"), one_to_many))
+    res_11 = [(name, table_name) for name, _, table_name in rows_starting_with_a]
     print(res_11)
 
     print("\nЗадание В2")
     min_values_by_table = []
     for table in tables:
-        table_rows = [row for row in one_to_many if row[2] == table.name]
-        if table_rows:
-            values = [row[1] for row in table_rows]
+        table_rows = list(filter(lambda row: row[2] == table.name, one_to_many))
+        if len(table_rows) > 0:
+            values = [value_count for _, value_count, _ in table_rows]
             min_value = min(values)
             min_values_by_table.append((table.name, min_value))
     print(sorted(min_values_by_table, key=itemgetter(1)))
